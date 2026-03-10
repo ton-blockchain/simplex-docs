@@ -53,7 +53,7 @@ Each honest validator holds an EUF-CMA-resistant signing key pair; each validato
 
 ### 1.2 Ledger Validity
 
-Let $\mathcal{D}$ denote the set of all possible block payloads. We assume an external predicate $ \mathsf{ValidSeq} : \mathcal{D}^* \rightarrow \{\mathsf{true}, \mathsf{false}\} $, which determines whether a sequence of payloads represents a valid ledger state. The predicate satisfies the following properties:
+Let $\mathcal{D}$ denote the set of all possible block payloads. We assume an external predicate $\mathsf{ValidSeq} : \mathcal{D}^* \rightarrow \{\mathsf{true}, \mathsf{false}\}$, which determines whether a sequence of payloads represents a valid ledger state. The predicate satisfies the following properties:
 1. *Genesis validity.* $\mathsf{ValidSeq}(\varnothing) = \mathsf{true}$.
 2. *Extendability.* For every valid sequence $(d_1,\dots,d_m)$, there exists some $d$ such that $\mathsf{ValidSeq}(d_1,\dots,d_m,d)$ holds.
 
@@ -65,16 +65,17 @@ Consensus does not depend on the internal structure of payloads beyond these pro
 
 **Slots.** *Slot number* is a discrete index $s \in \mathbb{N}_0$. Slots are grouped into *leader windows* of size $L$. Window $k$ covers slots $[kL, (k+1)L)$ with an associated leader $v_{(k \bmod n)+1}$.
 
-**Candidates.** A *candidate* is a tuple $(s, d, s_p, h_p)$ where
+**Candidates.** A *candidate* is a tuple $(s, d, s_p, h_p, \sigma)$ where
 - $s$ is the slot number,
 - $d \in \mathcal{D}$ is the block payload,
-- $(s_p, h_p)$ is a parent reference: either $(-1, \varnothing)$ or a pair with $s_p < s$.
+- $(s_p, h_p)$ is a parent reference: either $(-1, \varnothing)$ or a pair with $s_p < s$,
+- $\sigma$ is a valid signature by the leader of the window containing $s$ over $(s, d, s_p, h_p)$.
 
-For a candidate $(s, d, s_p, h_p)$, define $h = \mathsf{hash}(d, s_p, h_p)$. The pair $(s,h)$ uniquely identifies the candidate.
+For a candidate $(s, d, s_p, h_p, \sigma)$, define $h = \mathsf{hash}(d, s_p, h_p)$. The pair $(s,h)$ uniquely identifies the candidate.
 
 **Chains.** A *chain* ending at $(s_m, h_m)$ is a sequence of candidates where each candidate's
 parent reference points to the previous candidate in the sequence. Formally, it is a sequence of
-candidates $(s_1,d_1,s_{p1},h_{p1}), \dots, (s_m,d_m,s_{pm},h_{pm})$, identified by
+candidates $(s_1,d_1,s_{p1},h_{p1},\sigma_1), \dots, (s_m,d_m,s_{pm},h_{pm},\sigma_m)$, identified by
 $(s_1, h_1), \dots, (s_m, h_m)$, such that:
 - the first candidate has the genesis parent: $(s_{p1},h_{p1}) = (-1,\varnothing)$, and
 - each subsequent candidate references the previous one: $(s_{pi},h_{pi}) = (s_{i-1},h_{i-1})$ for $i \in [2, m]$.
@@ -99,7 +100,7 @@ We implicitly set the statements $\mathsf{Notar}(-1, \varnothing)$, $\mathsf{Fin
 
 A particular validator $v$ may cast votes certifying the following statements:
 
-* $\mathsf{Notar}(s,h)$. Validator $v$ has not cast a vote for $\mathsf{Notar}(s, h')$ for $h \ne h'$, and there exists a candidate $(s,d,s_p,h_p)$ identified by $(s,h)$ such that:
+* $\mathsf{Notar}(s,h)$. Validator $v$ has not cast a vote for $\mathsf{Notar}(s, h')$ for $h \ne h'$, and there exists a candidate $(s,d,s_p,h_p,\sigma)$ identified by $(s,h)$ such that:
     1. $\mathsf{Notar}(s_p,h_p)$ is reached,
     2. for each slot $s_p < s' < s$, the statement $\mathsf{Skip}(s')$ is reached,
     3. the candidate $(s,h)$ is valid.
@@ -157,7 +158,7 @@ at $(s_b,h_b)$.
 
 Otherwise, let $C_b$ be the chain ending at $(s_b,h_b)$ with slot set $S_b$. Suppose
 $s_a \notin S_b$. Since $s_a < s_b$, the chain $C_b$ must skip slot $s_a$: there exists a candidate
-$(s_c, d_c, s_d, h_d)$ identified by $(s_c, h_c)$ in $C_b$ with $s_d < s_a < s_c$. By Lemma 2.3, $\mathsf{Notar}(s_b,h_b)$ is reached; by Lemma 2.5, so is
+$(s_c, d_c, s_d, h_d, \sigma_c)$ identified by $(s_c, h_c)$ in $C_b$ with $s_d < s_a < s_c$. By Lemma 2.3, $\mathsf{Notar}(s_b,h_b)$ is reached; by Lemma 2.5, so is
 $\mathsf{Notar}(s_c,h_c)$. The notarization conditions for $(s_c,h_c)$ require $\mathsf{Skip}(s_a)$ to be reached. But
 $\mathsf{Final}(s_a, h_a)$ is also reached, contradicting Lemma 2.1. $\square$
 
@@ -190,8 +191,8 @@ finalization happens infinitely often with probability $1$.
 
 ### 3.1 Honest Validator Rules
 
-Fix parameters $T_0$ (skip-timeout scale), $T_s$ (standstill period), $\alpha > 1$
-(skip-timeout growth rate), and $C_\mathsf{max}$ (maximum candidate size).
+Fix parameters $T_0$ (skip-timeout scale), $T_s$ (standstill period), and $\alpha > 1$
+(skip-timeout growth rate).
 
 An honest validator $v$ maintains per-slot voting state (which $\mathsf{Notar}$,
 $\mathsf{Skip}$, and $\mathsf{Final}$ votes it has cast) and a local frontier $F_v$
@@ -223,14 +224,14 @@ chooses any base $(s_p,h_p)$ for which it can prove all of the following:
 2. $\mathsf{Notar}(s_p,h_p)$ is reached,
 3. $\mathsf{Skip}(s')$ is reached for every $s_p < s' < kL$.
 
-Validator $v$ then resolves the state at $(s_p,h_p)$ and produces at least one valid
-candidate $(kL,d,s_p,h_p)$ of size at most $C_\mathsf{max}$.
+Validator $v$ then resolves the state at $(s_p,h_p)$ and produces a valid
+candidate $(kL,d,s_p,h_p,\sigma)$.
 
 The candidate is broadcast to all validators.
 
 The following three rules govern how validators vote on candidates and handle leader failures.
 
-**Rule 4 (Notarize).** Upon receiving a candidate $(s,d,s_p,h_p)$ identified by $(s,h)$,
+**Rule 4 (Notarize).** Upon receiving a candidate $(s,d,s_p,h_p,\sigma)$ identified by $(s,h)$,
 validator $v$ starts state resolution for $(s_p,h_p)$. It votes $\mathsf{Notar}(s,h)$ and
 broadcasts the vote as soon as it can prove all of the following:
 
@@ -290,21 +291,14 @@ honest validator to another after $T_\mathsf{GST}$ is an independent trial that 
 within $\delta$ with probability at least $p_\mathrm{sdeliv} > 0$.
 
 **Assumption 10 (Candidate broadcast delivery).** For any slot where the designated leader
-is honest and broadcasts a candidate of size at most $C_\mathsf{max}$ after
-$T_\mathsf{GST}$, independently of other slots, some adversarially chosen set of honest
-validators with total weight at least $q$ receives that candidate within
-$
-\Delta_\mathrm{bcast} := \delta + \Theta(C_\mathsf{max})
-$
-with probability at least $p_\mathrm{bcast} > 0$.
+is honest and broadcasts a candidate after $T_\mathsf{GST}$, independently of other slots,
+some adversarially chosen set of honest validators with total weight at least $q$ receives
+that candidate within $\Delta_\mathrm{bcast}$ with probability at least
+$p_\mathrm{bcast} > 0$.
 
 **Assumption 11 (Candidate resolution success).** Each candidate-resolution request sent to
 an honest validator after $T_\mathsf{GST}$ is an independent trial that returns the
-candidate within
-$
-\Delta_\mathrm{resolv} := \delta + \Theta(C_\mathsf{max})
-$
-with probability at least $p_\mathrm{resolv} > 0$.
+candidate within $\Delta_\mathrm{resolv}$ with probability at least $p_\mathrm{resolv} > 0$.
 
 ### 3.3 Almost-sure Liveness
 
@@ -312,8 +306,10 @@ Let $\mathcal{H}$ be the set of honest validators.
 
 Let $t_0 \ge T_\mathsf{GST}$, and let $s_f$ be the largest slot such that
 $\mathsf{Final}(s_f,\cdot)$ is reached by time $t_0$. Consider the event
+
 $$
 E_0 := \{\text{no slot } s > s_f \text{ is ever finalized after } t_0\}.
+
 $$
 
 **Lemma 3.1 (Eventual dissemination of honest-held data).** Condition on $E_0$. Then, with probability $1$, every vote cast by an honest validator for
@@ -330,20 +326,18 @@ Fix $u,v \in \mathcal{H}$ and a specific object $X$ for a slot $> s_f$, where $X
 either a vote cast by $u$ or a certificate observed by $u$. By Rule 8, validator $u$
 retransmits $X$ infinitely many times. By Assumption 9, each retransmission reaches $v$
 within $\delta$ with probability at least $p_\mathrm{sdeliv} > 0$. Hence
+
 $$
 \Pr[\text{$v$ never receives $X$}]
 = \lim_{m\to\infty}(1-p_\mathrm{sdeliv})^m
 = 0.
+
 $$
 Since the set of honest sender-receiver pairs is finite, this holds simultaneously for all
 of them with probability $1$. $\square$
 
 **Lemma 3.2 (Every slot is eventually cleared under an infinite standstill).** Condition on $E_0$. Then, with probability $1$, every slot $s > s_f$ is eventually cleared
-for every honest validator. Consequently,
-$
-F_v(t) \to \infty
-$
-for every $v \in \mathcal{H}$ as $t \to \infty$.
+for every honest validator. Consequently, $F_v(t) \to \infty$ for every $v \in \mathcal{H}$ as $t \to \infty$.
 
 *Proof.* Proceed by induction on $s > s_f$.
 
@@ -412,15 +406,19 @@ numbers, so its length is at most $b+1 \le kL$. $\square$
 
 Let $m \ge 1$. Suppose an honest validator needs to resolve the state of a chain whose
 length is at most $m$. Then for every $T > 0$,
+
 $$
 \Pr[\text{resolution is not completed within time } T]
 \le C_\mathrm{res} m^{\beta+1} T^{-\beta}.
+
 $$
 
 In particular, for a base in window $k$ one may take $m \le kL$, so
+
 $$
 \Pr[\text{base state is not resolved within time } T]
 \le C'_\mathrm{res} k^{\beta+1} T^{-\beta}
+
 $$
 for a suitable constant $C'_\mathrm{res} > 0$ depending only on $L$ and the protocol
 parameters.
@@ -434,32 +432,26 @@ A single resolution request chooses a uniformly random peer. The probability tha
 request is addressed to an honest holder is at least $1/n$. Conditioned on that event,
 Assumption 11 implies a reply within $\Delta_\mathrm{resolv}$ with probability at least
 $p_\mathrm{resolv}$. Hence one request attempt succeeds within
-$\Delta_\mathrm{resolv}$ with probability at least
-$
-a := \frac{p_\mathrm{resolv}}{n} > 0$.
+$\Delta_\mathrm{resolv}$ with probability at least $a := \frac{p_\mathrm{resolv}}{n} > 0$.
 
 By Rule 2, retries use exponentially increasing timeouts. Therefore there exist constants
-$B,B' > 0$ such that by time $T$ at least
-$
-\left\lfloor B' \ln(T/B) \right\rfloor
-$
-request attempts have been made whenever $T \ge B$. Hence
+$B,B' > 0$ such that by time $T$ at least $\left\lfloor B' \ln(T/B) \right\rfloor$ request attempts have been made whenever $T \ge B$. Hence
+
 $$
 \Pr[\text{one fixed candidate is still unresolved after time } T]
 \le (1-a)^{\lfloor B' \ln(T/B) \rfloor}.
+
 $$
-Setting
-$
-\beta := -B' \ln(1-a) > 0,
-$
-the right-hand side is bounded by $C_0 T^{-\beta}$ for a suitable constant $C_0 > 0$.
+Setting $\beta := -B' \ln(1-a) > 0$, the right-hand side is bounded by $C_0 T^{-\beta}$ for a suitable constant $C_0 > 0$.
 
 Now let the chain length be at most $m$. Resolve candidates sequentially from the base
 upward and allocate time $T/m$ to each candidate. Let $P$ be "some candidate on the chain is not resolved within its allotted time". By the bound above and a union bound,
+
 $$
 \Pr[P]
 \le m \cdot C_0 (T/m)^{-\beta}
 = C_0 m^{\beta+1} T^{-\beta}.
+
 $$
 This proves the claim with $C_\mathrm{res} = C_0$. The window-$k$ specialization follows
 from Lemma 3.3. $\square$
@@ -472,11 +464,7 @@ time $a_k$ in which no slot larger than $s_f$ has been finalized by time $a_k$. 
 probability that slot $kL$ is finalized before the skip timeout in that window is at least
 $\varepsilon$.
 
-*Proof.* Fix such a window $k$, and let $u$ be its honest leader. Let
-$
-\tau_k := T_0 \alpha^{k-k_f-1},
-$
-the lower bound from Rule 6 for skip timeouts in window $k$.
+*Proof.* Fix such a window $k$, and let $u$ be its honest leader. Let $\tau_k := T_0 \alpha^{k-k_f-1}$, the lower bound from Rule 6 for skip timeouts in window $k$.
 
 Let $(b,h_b)$ be the base chosen by $u$ under Rule 3. By Rule 3, at the moment of choice,
 leader $u$ already has a local proof that $(b,h_b)$ is eligible: one certificate proving
@@ -498,54 +486,52 @@ We treat these steps in order.
 
 First, the leader must resolve the chosen base state and produce its candidate. Since any
 chain ending at a base with slot $b < kL$ has length at most $kL$, Lemma 3.4 gives
+
 $$
 \Pr[\text{leader does not finish this within time } \tau_k/4]
 \le C_1 k^{\beta+1} \tau_k^{-\beta}
+
 $$
 for some constant $C_1 > 0$.
 
 Second, once the candidate is produced and broadcast, Assumption 10 implies that with
-probability at least $p_\mathrm{bcast}$ some honest set
-$
-H_k \subseteq \mathcal{H}
-$
-with total weight at least $q$ receives the candidate within
+probability at least $p_\mathrm{bcast}$ some honest set $H_k \subseteq \mathcal{H}$ with total weight at least $q$ receives the candidate within
 $\Delta_\mathrm{bcast}$.
 
 Third, the validators in $H_k$ must receive enough certificates to prove Rule 4(2) and 4(3)
 for the leader's chosen base. Let $P_k$ be the set of certificates needed for that proof:
 one certificate for the base, and one skip certificate for each slot between $b$ and $kL$.
-Thus
-$
-|P_k| \le kL+1.
-$
+Thus $|P_k| \le kL+1$.
 
 As long as no new finalized block is observed, Rule 8 makes the leader rebroadcast all of
 these certificates every $T_s$ time units. Over any interval of length $\tau_k/2$, there
 are at least
+
 $$
 M_k := \left\lfloor \frac{\tau_k}{2T_s} \right\rfloor - 1
+
 $$
 standstill attempts once $k$ is large enough. For any fixed certificate
 $C \in P_k$ and any fixed validator $w \in H_k$, the probability that none of those
-$M_k$ transmissions from $u$ to $w$ arrives within $\delta$ is at most
-$
-(1-p_\mathrm{sdeliv})^{M_k}.
-$
+$M_k$ transmissions from $u$ to $w$ arrives within $\delta$ is at most $(1-p_\mathrm{sdeliv})^{M_k}$.
 Let $P'$ be "some validator in $H_k$ is still missing some certificate in $P_k$ after time $\tau_k/2$".
 A union bound over all certificate-recipient pairs shows that
+
 $$
 \Pr[P']
 \le n(kL+1)(1-p_\mathrm{sdeliv})^{M_k}.
+
 $$
 The right-hand side tends to $0$ exponentially fast in $\tau_k$.
 
 Fourth, each validator in $H_k$ must resolve the same base state before voting
 $\mathsf{Notar}(kL,\cdot)$. Applying Lemma 3.4 and union bounding over at most $n$
 validators,
+
 $$
 \Pr[\text{some validator in } H_k \text{ fails to resolve within time } \tau_k/4]
 \le C_2 k^{\beta+1} \tau_k^{-\beta}
+
 $$
 for some constant $C_2 > 0$.
 
@@ -559,8 +545,10 @@ Choose some collector $c_k \in H_k$. Let $E_\mathrm{vote}$ be the event that:
 
 This involves at most $3n$ point-to-point deliveries between honest validators. By
 Assumption 9,
+
 $$
 \Pr[E_\mathrm{vote}] \ge p_\mathrm{sdeliv}^{3n}.
+
 $$
 
 Now define the success event $E_k$ as the conjunction of the following:
@@ -573,38 +561,35 @@ Now define the success event $E_k$ as the conjunction of the following:
 5. $E_\mathrm{vote}$ occurs.
 
 On $E_k$, by time $\tau_k/2 + \tau_k/4$ every validator in $H_k$ has all information
-needed to prove Rule 4(2)--(4), so all validators in $H_k$ vote
+needed to prove Rule 4(2)--(4). Moreover, because the leader is honest and produces
+only one candidate per slot, no other properly signed candidate for slot $kL$ exists,
+so no validator in $H_k$ can have previously voted $\mathsf{Notar}(kL,\cdot)$ for a
+different candidate, satisfying Rule 4(1). Thus all validators in $H_k$ vote
 $\mathsf{Notar}(kL,\cdot)$. The collector forms the notarization certificate and
 rebroadcasts it. Since all of these validators have not yet skipped slot $kL$, they then
 vote $\mathsf{Final}(kL,\cdot)$, and the collector receives finalization votes of total
 weight at least $q$.
 
-The total time used on $E_k$ is at most
-$
-\frac{\tau_k}{2} + \frac{\tau_k}{4} + \Delta_\mathrm{bcast} + 3\delta
-$.
+The total time used on $E_k$ is at most $\frac{\tau_k}{2} + \frac{\tau_k}{4} + \Delta_\mathrm{bcast} + 3\delta$.
 Because $\tau_k$ grows exponentially in $k$ while $\Delta_\mathrm{bcast}$ and $\delta$
-are constant, there exists $k_0 > k_f$ such that for all $k \ge k_0$,
-$
-\Delta_\mathrm{bcast} + 3\delta \le \frac{\tau_k}{4}
-$,
-and simultaneously
+are constant, there exists $k_0 > k_f$ such that for all $k \ge k_0$, $\Delta_\mathrm{bcast} + 3\delta \le \frac{\tau_k}{4}$, and simultaneously
+
 $$
 C_1 k^{\beta+1}\tau_k^{-\beta}
 + C_2 k^{\beta+1}\tau_k^{-\beta}
 + n(kL+1)(1-p_\mathrm{sdeliv})^{M_k}
 \le \frac{1}{2}.
+
 $$
 
 For such $k$, the chain rule gives
+
 $$
 \Pr[E_k]
 \ge \frac{1}{2}\, p_\mathrm{bcast}\, p_\mathrm{sdeliv}^{3n}.
+
 $$
-Set
-$
-\varepsilon := \frac{1}{2}\, p_\mathrm{bcast}\, p_\mathrm{sdeliv}^{3n} > 0.
-$
+Set $\varepsilon := \frac{1}{2}\, p_\mathrm{bcast}\, p_\mathrm{sdeliv}^{3n} > 0$.
 
 Finally, on $E_k$ the finalization certificate for slot $kL$ is formed before time
 $\tau_k$, hence before any honest validator's skip timeout for that slot expires.
@@ -623,56 +608,53 @@ leader windows rotate cyclically and the honest stake is positive, infinitely ma
 those active windows have honest leaders.
 
 Enumerate, on the event $E_0$, the honest-leader windows with index at least $k_0$ from
-Lemma 3.5 as
-$
-K_1 < K_2 < \cdots
-$.
+Lemma 3.5 as $K_1 < K_2 < \cdots$.
 For each $i$, let $A_i$ be the event that the leader slot of window $K_i$ is finalized
 before its skip timeout.
 
-Lemma 3.5 states that for every $i$,
-$
-\Pr[A_i \mid \mathcal{F}_i] \ge \varepsilon
-$,
-where $\mathcal{F}_i$ is the full execution history up to the activation time of window
+Lemma 3.5 states that for every $i$, $\Pr[A_i \mid \mathcal{F}_i] \ge \varepsilon$, where $\mathcal{F}_i$ is the full execution history up to the activation time of window
 $K_i$, under the condition that no slot larger than $s_f$ has been finalized before that
 activation time. Hence, by the chain rule,
+
 $$
 \Pr\!\left[\bigcap_{i=1}^m A_i^c\right] \le (1-\varepsilon)^m
 \qquad\text{for every } m \ge 1.
+
 $$
 
 But on $E_0$, all of the windows $K_i$ exist and all of the events $A_i$ fail. Therefore
+
 $$
 \Pr[E_0]
 \le \Pr\!\left[\bigcap_{i=1}^m A_i^c\right]
 \le (1-\varepsilon)^m
 \qquad\text{for every } m \ge 1.
+
 $$
 Letting $m \to \infty$ yields $\Pr[E_0] = 0$. Thus, conditioned on the execution prefix
 up to time $t_0$, some later slot is finalized almost surely. $\square$
 
 **Theorem 3.7 (Infinitely many finalized blocks).** With probability $1$, infinitely many slots are finalized.
 
-*Proof.* Define a sequence of random slots $(S_j)_{j \ge 0}$ recursively by
-$
-S_0 := -1
-$,
-and for each $j \ge 0$, let $S_{j+1}$ be the smallest slot strictly larger than $S_j$
+*Proof.* Define a sequence of random slots $(S_j)_{j \ge 0}$ recursively by $S_0 := -1$, and for each $j \ge 0$, let $S_{j+1}$ be the smallest slot strictly larger than $S_j$
 that is finalized, if such a slot exists.
 
 Theorem 3.6 applies after any finite execution prefix. In particular, on the event that
 $S_j$ exists, condition on the history up to the time when $S_j$ is finalized. Then, with
 probability $1$, some later slot is finalized. Equivalently,
+
 $$
 \Pr[S_{j+1} < \infty \mid S_j < \infty] = 1
 \qquad\text{for every } j \ge 0.
+
 $$
 
 By induction on $j$,
+
 $$
 \Pr[S_j < \infty] = 1
 \qquad\text{for every } j \ge 0.
+
 $$
 Hence, with probability $1$, the sequence $(S_j)$ is defined for all $j$, which means
 that infinitely many slots are finalized. $\square$
@@ -731,7 +713,12 @@ additionally cap $T_\mathsf{skip}(s)$ at 100 s, in the expectation that any reas
 synchronization will not require longer skip timeouts. Regardless, a mechanism to manually
 increase `first_block_max_timeout_s` is planned.
 
-### 4.3 Network Model Deviations
+### 4.3 Network Model Discussion
+
+Assumptions 10 and 11 require bounded delivery times $\Delta_\mathrm{bcast}$ and
+$\Delta_\mathrm{resolv}$. This is justified because the implementation caps candidate
+payload size at a constant $C_\mathsf{max}$, so delivery time is
+$\delta + \Theta(C_\mathsf{max})$ for both broadcast and resolution.
 
 The egress induced by the protocol is currently unbounded. In particular, a sufficiently long
 period of asynchrony (or a bug) can induce a state whose synchronization saturates link capacity,
