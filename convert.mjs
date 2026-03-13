@@ -77,16 +77,18 @@ const html = `<!doctype html>
   <link rel="stylesheet" href="${katexCdnCss}" crossorigin="anonymous" />
   <style>
     body {
-      padding: 0 26px;
       margin: 0;
-      max-width: 882px;
-      margin: 0 auto;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif;
       font-size: 14px;
       line-height: 1.6;
       color: #333;
       background: #fff;
       word-wrap: break-word;
+    }
+    main {
+      max-width: 882px;
+      margin: 0 auto;
+      padding: 32px 26px 48px;
     }
     h1 { font-size: 2em; border-bottom: 1px solid #eee; padding-bottom: .3em; margin-top: 0; }
     h2 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: .3em; }
@@ -116,6 +118,17 @@ const html = `<!doctype html>
     .anchor:hover { color: #4080d0; text-decoration: none; }
     h1 .anchor, h2 .anchor, h3 .anchor, h4 .anchor { visibility: hidden; }
     h1:hover .anchor, h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { visibility: visible; }
+    .wip {
+      margin: 0;
+      padding: 6px;
+      background: #c00;
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
 
     @media (prefers-color-scheme: dark) {
       body { color: #d4d4d4; background: #1e1e1e; }
@@ -130,11 +143,15 @@ const html = `<!doctype html>
       th { background: #2d2d2d; }
       tr:nth-child(2n) { background: #2d2d2d; }
       hr { border-top-color: #333; }
+      .wip { background: #900; }
     }
   </style>
 </head>
 <body>
+<p class="wip">Working Draft</p>
+<main>
 ${body}
+</main>
 </body>
 </html>`;
 

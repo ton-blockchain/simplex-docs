@@ -6,16 +6,18 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.38/dist/katex.min.css" crossorigin="anonymous" />
   <style>
     body {
-      padding: 0 26px;
       margin: 0;
-      max-width: 882px;
-      margin: 0 auto;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif;
       font-size: 14px;
       line-height: 1.6;
       color: #333;
       background: #fff;
       word-wrap: break-word;
+    }
+    main {
+      max-width: 882px;
+      margin: 0 auto;
+      padding: 32px 26px 48px;
     }
     h1 { font-size: 2em; border-bottom: 1px solid #eee; padding-bottom: .3em; margin-top: 0; }
     h2 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: .3em; }
@@ -45,6 +47,17 @@
     .anchor:hover { color: #4080d0; text-decoration: none; }
     h1 .anchor, h2 .anchor, h3 .anchor, h4 .anchor { visibility: hidden; }
     h1:hover .anchor, h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { visibility: visible; }
+    .wip {
+      margin: 0;
+      padding: 6px;
+      background: #c00;
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
 
     @media (prefers-color-scheme: dark) {
       body { color: #d4d4d4; background: #1e1e1e; }
@@ -59,10 +72,13 @@
       th { background: #2d2d2d; }
       tr:nth-child(2n) { background: #2d2d2d; }
       hr { border-top-color: #333; }
+      .wip { background: #900; }
     }
   </style>
 </head>
 <body>
+<p class="wip">Working Draft</p>
+<main>
 <h1 id="simplex-consensus-in-ton"><a class="anchor" href="#simplex-consensus-in-ton">#</a> Simplex Consensus in TON</h1>
 <p><a href="https://simplex.blog/">Simplex</a> is a leader-based consensus protocol. Validators take turns
 proposing blocks and then collectively vote on them. The protocol produces a single, ever-growing
@@ -728,5 +744,6 @@ depend on.</p>
 </li>
 </ol>
 
+</main>
 </body>
 </html>
