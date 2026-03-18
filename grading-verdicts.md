@@ -7,7 +7,7 @@ The submission does not describe a concrete bug, does not include a valid reprod
 ## Cannot Reproduce
 
 - No reproducer is provided.
-- The provided reproducer does not actually trigger the reported bug. For resource exhaustion issues, this includes failing to demonstrate superlinear growth.
+- The provided reproducer does not actually trigger the reported bug.
 
 ## Out of Scope
 
@@ -17,6 +17,8 @@ The submission does not describe a concrete bug, does not include a valid reprod
 ## WAI (Works as Intended)
 
 We do not consider the described behavior to be a bug, and the submission does not provide sufficient justification to classify it as such. If you believe you submitted genuine issue, it would strengthen the case to demonstrate that it could cause trivially erroneous behavior: node crashes, consensus stalls requiring manual intervention, the creation of a *finalized* fork, etc.
+
+For resource exhaustion issues, this includes failing to demonstrate superlinear growth.
 
 Note that the simultaneous creation of notarization and skip votes or certificates for a slot is an expected mechanism that ensures Simplex liveness.
 
