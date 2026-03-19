@@ -31,6 +31,10 @@ Note that the simultaneous creation of notarization and skip votes or certificat
 
 The reported issue may be a bug, but it is not exploitable.
 
+## Duplicate
+
+We are already aware of the issue.
+
 ## Confirmed
 
 Congratulations! ~~Your LLM just earned you money.~~ We agree that this appears to be a legitimate bug.
