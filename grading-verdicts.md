@@ -37,4 +37,4 @@ We are already aware of the issue.
 
 ## Confirmed
 
-Congratulations! ~~Your LLM just earned you money.~~ We agree that this appears to be a legitimate bug.
+We agree that this appears to be a legitimate bug.
