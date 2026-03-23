@@ -20,7 +20,9 @@ We do not consider the described behavior to be a bug, and the submission does n
 
 For resource exhaustion issues, this includes failing to demonstrate superlinear growth.
 
-Note that the simultaneous creation of notarization and skip votes or certificates for a slot is an expected mechanism that ensures Simplex liveness.
+Note that:
+- The simultaneous creation of notarization and skip votes or certificates for a slot is an expected mechanism that ensures Simplex liveness.
+- Temporary block rate degradation during and shortly after a malicious leader window is expected. After all, a Byzantine leader can just choose not to produce a block and make all nodes wait for the skip timeout.
 
 ## Not Attacker Controlled
 
