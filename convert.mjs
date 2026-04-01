@@ -121,13 +121,11 @@ const html = `<!doctype html>
     .wip {
       margin: 0;
       padding: 6px;
-      background: #c00;
-      color: #fff;
+      background: #dbeafe;
+      color: #1e40af;
       font-size: 13px;
-      font-weight: bold;
+      font-weight: 600;
       text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -143,12 +141,15 @@ const html = `<!doctype html>
       th { background: #2d2d2d; }
       tr:nth-child(2n) { background: #2d2d2d; }
       hr { border-top-color: #333; }
-      .wip { background: #900; }
+      .wip {
+        background: #172554;
+        color: #bfdbfe;
+      }
     }
   </style>
 </head>
 <body>
-<p class="wip">Working Draft</p>
+<p class="wip">Catchain 2.0 whitepaper is work in progress</p>
 <main>
 ${body}
 </main>

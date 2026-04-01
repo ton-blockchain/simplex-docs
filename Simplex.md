@@ -1,4 +1,4 @@
-# Simplex Consensus in TON
+# Catchain 2.0: Simplex Consensus in TON
 
 [Simplex](https://simplex.blog/) is a leader-based consensus protocol. Validators take turns
 proposing blocks and then collectively vote on them. The protocol produces a single, ever-growing
